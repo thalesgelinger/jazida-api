@@ -1,0 +1,26 @@
+profiles:
+  local:
+    data:
+      host: http://localhost:8080/api
+
+requests:
+  get_loads:
+    method: GET
+    url: "{{host}}/loads"
+    headers:
+      Authorization: admin
+  new_load:
+    method: POST
+    url: "{{host}}/load"
+    headers:
+      content-type: application/json
+      Authorization: test
+    body: >
+      {
+        "client": "Hello, world!",
+        "plate": "Hello, world!",
+        "material": "Hello, world!",
+        "quantity": "Hello, world!",
+        "paymentMethod": "Hello, world!",
+        "signature": "Hello, world!"
+      }

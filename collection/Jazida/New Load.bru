@@ -1,0 +1,31 @@
+meta {
+  name: New Load
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/api/load
+  body: json
+  auth: none
+}
+
+query {
+  : 
+}
+
+headers {
+  Authorization: test
+}
+
+body:json {
+        {
+          "client": "Jaime",
+          "plate": "abc123",
+          "material": "saibro",
+          "quantity": "10m",
+          "paymentMethod": "a vista",
+          "signature": "a;lsdfasd;jklfadjkl;fadskl;jafdsafdsadfsjkl;"
+        }
+  
+}
