@@ -1,4 +1,0 @@
-curl -X POST \
-    -d '{"client":"Hello, world!","plate":"Hello, world!","material":"Hello, world!","quantity":"Hello, world!","paymentMethod":"Hello, world!","signature":"Hello, world!"}'\
-    -H "Content-Type: application/json" \
-    http://localhost:5000/api/load

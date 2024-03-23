@@ -1,0 +1,16 @@
+meta {
+  name: Save signature
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/signature
+    http.Handle("/images/", http.StripPrefix("/images/", fs))
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Authorization: test
+}

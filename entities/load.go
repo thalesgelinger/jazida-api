@@ -8,3 +8,7 @@ type Load struct {
 	PaymentMethod string `json:"paymentMethod"`
 	Signature     string `json:"signature"`
 }
+
+type Signature struct {
+	Url string `json:"url"`
+}
