@@ -13,6 +13,7 @@ import (
 
 func main() {
 	db.CreateLoadsTable()
+	db.CreateClientsTable()
 
 	mux := http.NewServeMux()
 
@@ -21,6 +22,9 @@ func main() {
 	mux.HandleFunc("POST /api/signature", midw.Cors(midw.WithLoaderAuth(services.SaveSignature)))
 
 	mux.HandleFunc("/", views.Home)
+	mux.HandleFunc("/clients", views.Config)
+	mux.HandleFunc("GET /new-client", views.NewFormClient)
+	mux.HandleFunc("POST /new-client", views.AddClient)
 
 	log.Println("Server Started")
 

@@ -1,4 +1,3 @@
-{{ block "home" . }}
 <html lang="en">
 
 <head>
@@ -47,33 +46,41 @@
         </a>
     </header>
 
-    <main class="h-screen w-screen bg-gray flex justify-center items-center">
+    <main id="clients" class="h-screen w-screen bg-gray flex flex-col gap-10 justify-center items-center">
+        {{ block "clients" . }}
         <table class="w-[60vw] table-auto rounded-2xl bg-white  drop-shadow-[16px_16px_0px_#000000] overflow-hidden">
             <thead>
                 <tr class="bg-yellow rounded-2xl">
                     <th>Cliente</th>
                     <th>Placa</th>
-                    <th>Material</th>
-                    <th>Quantidade</th>
-                    <th>Método de pagamento</th>
-                    <th>Assinatura</th>
                 </tr>
             </thead>
             <tbody>
-                {{ range .Loads }}
+                {{ range .Clients }}
                 <tr class="text-center">
-                    <td>{{ .Client }}</td>
+                    <td>{{ .Name }}</td>
                     <td>{{ .Plate }}</td>
-                    <td>{{ .Material }}</td>
-                    <td>{{ .Quantity }}</td>
-                    <td>{{ .PaymentMethod }}</td>
-                    <td> <img src="{{ .Signature }}" class="h-20"></td>
                 </tr>
                 {{ end }}
+                <td></td>
             </tbody>
         </table>
+        <div id="new-client"
+            class="bg-white rounded drop-shadow-[8px_8px_0px_#000000] py-1 px-2 text-gray cursor-pointer">
+            <button hx-get="/new-client" hx-target="#new-client">
+                Novo Cliente
+            </button>
+        </div>
+        {{ end }}
     </main>
 </body>
 
 </html>
+
+{{ block "new-client" .}}
+<form hx-post="/new-client" hx-target="#clients">
+    <input name="name" class="placeholder-gray h-full p-1" placeholder="Nome do cliente">
+    <input name="plate" class="placeholder-gray h-full p-1" placeholder="Placa do cliente">
+    <button class="text-lg">adicionar</button>
+</form>
 {{ end }}

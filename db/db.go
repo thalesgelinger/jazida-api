@@ -63,6 +63,30 @@ func CreateLoadsTable() {
 	log.Println("Table created successfully")
 }
 
+func CreateClientsTable() {
+	db, err := OpenConn()
+	if err != nil {
+		return
+	}
+	defer db.Close()
+
+	createTableSQL := `
+        CREATE TABLE IF NOT EXISTS clients (
+            id SERIAL PRIMARY KEY,
+            name    VARCHAR(50) NOT NULL,   
+            plate      VARCHAR(50) NOT NULL  
+        )
+    `
+
+	_, err = db.Exec(createTableSQL)
+
+	if err != nil {
+		log.Fatal("Error creating table: ", err)
+	}
+
+	log.Println("Table created successfully")
+}
+
 func SaveLoad(load *entities.Load) {
 	db, err := OpenConn()
 
@@ -143,4 +167,70 @@ func GetLoads() ([]entities.Load, error) {
 	}
 
 	return loads, nil
+}
+
+func GetClients() ([]entities.Client, error) {
+	db, err := OpenConn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer db.Close()
+
+	query := `SELECT 
+            name,    
+            plate    
+            FROM clients`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatal("Error getting clients", err)
+	}
+	defer rows.Close()
+
+	clients := []entities.Client{}
+
+	for rows.Next() {
+		var client entities.Client
+
+		if err := rows.Scan(
+			&client.Name,
+			&client.Plate,
+		); err != nil {
+			log.Fatal("Error reading client row", err)
+		}
+
+		clients = append(clients, client)
+	}
+
+	return clients, nil
+}
+
+func SaveClient(client *entities.Client) {
+	db, err := OpenConn()
+
+	if err != nil {
+		return
+	}
+
+	defer db.Close()
+
+	var loadId int
+
+	sql := `INSERT INTO clients (
+		        name
+		       ,plate
+		    ) VALUES ($1,$2)
+            RETURNING id
+            `
+
+	err = db.QueryRow(sql,
+		client.Name,
+		client.Plate,
+	).Scan(&loadId)
+
+	if err != nil {
+		log.Fatal("Error creating new load", err)
+	}
 }

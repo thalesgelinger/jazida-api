@@ -9,6 +9,11 @@ type Load struct {
 	Signature     string `json:"signature"`
 }
 
+type Client struct {
+	Name  string `json:"name"`
+	Plate string `json:"plate"`
+}
+
 type Signature struct {
 	Url string `json:"url"`
 }

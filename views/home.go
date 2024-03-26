@@ -1,15 +1,30 @@
 package views
 
 import (
+	"jazida-api/db"
+	"jazida-api/entities"
 	"net/http"
 )
 
-type Count struct {
-	Count int
+type HomeProps struct {
+	Loads []entities.Load
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
 	t := NewTemplate()
-	count := Count{1}
-	t.Render(w, "home", count)
+
+	allLoads, err := db.GetLoads()
+	if err != nil {
+		// TODO: handle this later
+		return
+	}
+
+	loads := allLoads
+
+	homeProps := HomeProps{
+		Loads: loads,
+	}
+
+	t.Render(w, "home", homeProps)
 }
+
