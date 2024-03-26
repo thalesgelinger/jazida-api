@@ -50,7 +50,7 @@ func CreateLoadsTable() {
             material     VARCHAR(50) NOT NULL,
             quantity     VARCHAR(50) NOT NULL,
             paymentmethod VARCHAR(50) NOT NULL,
-            signature    VARCHAR(50) NOT NULL
+            signature    VARCHAR(100) NOT NULL
         )
     `
 
