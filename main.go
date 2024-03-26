@@ -20,6 +20,7 @@ func main() {
 	mux.HandleFunc("GET /api/loads", midw.WithAdminAuth(services.GetLoads))
 	mux.HandleFunc("POST /api/load", midw.WithLoaderAuth(services.SaveLoad))
 	mux.HandleFunc("POST /api/signature", midw.Cors(midw.WithLoaderAuth(services.SaveSignature)))
+	mux.HandleFunc("GET /api/clients", midw.WithLoaderAuth(services.GetClients))
 
 	mux.HandleFunc("/", views.Home)
 	mux.HandleFunc("/clients", views.Config)

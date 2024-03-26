@@ -30,6 +30,46 @@ func GetLoads(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type ClientsResponse struct {
+	Name   string   `json:"name"`
+	Plates []string `json:"plates"`
+}
+
+func GetClients(w http.ResponseWriter, r *http.Request) {
+	clients, err := db.GetClients()
+	if err != nil {
+		log.Fatal("Error getting clients")
+		return
+	}
+
+	clientsResponse := []ClientsResponse{}
+
+	responseMap := map[string][]string{}
+
+	for _, client := range clients {
+		if len(responseMap[client.Name]) == 0 {
+			responseMap[client.Name] = []string{client.Plate}
+		} else {
+			responseMap[client.Name] = append(responseMap[client.Name], client.Plate)
+		}
+	}
+
+	for name, plates := range responseMap {
+		newClientResponse := ClientsResponse{
+			Name:   name,
+			Plates: plates,
+		}
+		clientsResponse = append(clientsResponse, newClientResponse)
+	}
+
+	err = json.NewEncoder(w).Encode(clientsResponse)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func SaveLoad(w http.ResponseWriter, r *http.Request) {
 
 	var newLoad entities.Load
