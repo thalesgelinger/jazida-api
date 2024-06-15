@@ -14,7 +14,7 @@ func (v *ViewHandler) Home(w http.ResponseWriter, r *http.Request) {
 
 	allLoads, err := v.db.GetLoads(r.Context())
 	if err != nil {
-		// TODO: handle this later
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

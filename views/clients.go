@@ -15,7 +15,7 @@ func (v *ViewHandler) Config(w http.ResponseWriter, r *http.Request) {
 
 	clientsRow, err := v.db.GetClients(r.Context())
 	if err != nil {
-		// TODO: handle this later
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (v *ViewHandler) AddClient(w http.ResponseWriter, r *http.Request) {
 
 	clientsRow, err := v.db.GetClients(r.Context())
 	if err != nil {
-		// TODO: handle this later
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

@@ -24,7 +24,7 @@ func main() {
 
 	ctx := context.Background()
 
-	poolConfig, err := pgxpool.ParseConfig(os.Getenv("DB_URL"))
+	poolConfig, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		slog.Error(fmt.Sprintf("Unable to parse database URL: %s", err.Error()))
 		return
