@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"jazida-api/internal/handler"
 	"jazida-api/internal/infra/db"
@@ -30,6 +31,16 @@ func (s *Server) Start() error {
 	queries = db.New(s.conn)
 
 	s.router = http.NewServeMux()
+
+	s.router.HandleFunc("GET /hello", func(w http.ResponseWriter, r *http.Request) {
+		type Hello struct {
+			Message string `json:"message"`
+		}
+
+		json.NewEncoder(w).Encode(Hello{
+			Message: "jazida api is up and running",
+		})
+	})
 
 	s.setupLoadRoutes()
 	s.setupClientsRoutes()
