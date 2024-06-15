@@ -52,7 +52,7 @@ func (s *Server) Start() error {
 	fs := http.FileServer(http.Dir(signaturesPath))
 
 	s.router.Handle("/api/signatures/", http.StripPrefix("/api/signatures/", fs))
-	return http.ListenAndServe("localhost:8080", s.router)
+	return http.ListenAndServe(s.listenAddr, s.router)
 }
 
 func (s *Server) setupLoadRoutes() {
