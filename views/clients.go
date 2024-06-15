@@ -1,59 +1,77 @@
 package views
 
 import (
-	"jazida-api/db"
-	"jazida-api/entities"
+	"jazida-api/internal/entity"
+	"jazida-api/internal/infra/db"
 	"net/http"
 )
 
 type ClientProps struct {
-	Clients []entities.Client
+	Clients []entity.Client
 }
 
-func Config(w http.ResponseWriter, r *http.Request) {
+func (v *ViewHandler) Config(w http.ResponseWriter, r *http.Request) {
 	t := NewTemplate()
 
-	c, err := db.GetClients()
+	clientsRow, err := v.db.GetClients(r.Context())
 	if err != nil {
 		// TODO: handle this later
 		return
 	}
 
-	clients := ClientProps{
-		Clients: c,
+	var clients []entity.Client
+
+	for _, row := range clientsRow {
+		clients = append(clients, entity.Client{
+			Name:  row.Name,
+			Plate: row.Plate,
+		})
 	}
 
-	t.Render(w, "clients.html", clients)
+	clientsProps := ClientProps{
+		Clients: clients,
+	}
+
+	t.Render(w, "clients.html", clientsProps)
 }
 
-func NewFormClient(w http.ResponseWriter, r *http.Request) {
+func (v *ViewHandler) NewFormClient(w http.ResponseWriter, r *http.Request) {
 	t := NewTemplate()
 
 	t.Render(w, "new-client", "")
 }
 
-func AddClient(w http.ResponseWriter, r *http.Request) {
+func (v *ViewHandler) AddClient(w http.ResponseWriter, r *http.Request) {
 	t := NewTemplate()
 
 	name := r.FormValue("name")
 	plate := r.FormValue("plate")
 
-	client := entities.Client{
+	client := db.AddClientParams{
 		Name:  name,
 		Plate: plate,
 	}
 
-	db.SaveClient(&client)
+	v.db.AddClient(r.Context(), client)
 
-	c, err := db.GetClients()
+	clientsRow, err := v.db.GetClients(r.Context())
 	if err != nil {
 		// TODO: handle this later
 		return
 	}
 
-	clients := ClientProps{
-		Clients: c,
+	var clients []entity.Client
+
+	for _, row := range clientsRow {
+		clients = append(clients, entity.Client{
+			Name:  row.Name,
+			Plate: row.Plate,
+		})
 	}
 
-	t.Render(w, "clients", clients)
+	clientsProps := ClientProps{
+		Clients: clients,
+	}
+
+	t.Render(w, "clients", clientsProps)
 }

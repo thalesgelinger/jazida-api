@@ -1,19 +1,18 @@
 package views
 
 import (
-	"jazida-api/db"
-	"jazida-api/entities"
+	"jazida-api/internal/infra/db"
 	"net/http"
 )
 
 type HomeProps struct {
-	Loads []entities.Load
+	Loads []db.Load
 }
 
-func Home(w http.ResponseWriter, r *http.Request) {
+func (v *ViewHandler) Home(w http.ResponseWriter, r *http.Request) {
 	t := NewTemplate()
 
-	allLoads, err := db.GetLoads()
+	allLoads, err := v.db.GetLoads(r.Context())
 	if err != nil {
 		// TODO: handle this later
 		return
@@ -27,4 +26,3 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 	t.Render(w, "home", homeProps)
 }
-

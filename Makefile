@@ -1,5 +1,5 @@
 build:
-	@go build -o bin/jazida
+	@go build -o bin/jazida cmd/jazida/main.go
 
 run: build
 	@./bin/jazida

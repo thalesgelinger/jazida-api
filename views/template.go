@@ -3,6 +3,7 @@ package views
 import (
 	"html/template"
 	"io"
+	"jazida-api/internal/infra/db"
 )
 
 type Templates struct {
@@ -17,4 +18,12 @@ func NewTemplate() *Templates {
 	return &Templates{
 		template: template.Must(template.ParseGlob("templates/*.html")),
 	}
+}
+
+type ViewHandler struct {
+	db *db.Queries
+}
+
+func NewViewHandler(db *db.Queries) *ViewHandler {
+	return &ViewHandler{db}
 }

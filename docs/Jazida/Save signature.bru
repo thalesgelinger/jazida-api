@@ -1,0 +1,19 @@
+meta {
+  name: Save signature
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/signature
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Authorization: test
+}
+
+body:multipart-form {
+  image: @file(/Users/tgelin01/Projects/jazida-api/images/duck.jpg)
+}
