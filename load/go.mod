@@ -1,4 +1,4 @@
-module new-load
+module load
 
 go 1.22.1
 

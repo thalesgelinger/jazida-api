@@ -1,8 +1,8 @@
 package app
 
 import (
-	"new-load/api"
-	db "new-load/database"
+	"load/api"
+	db "load/database"
 )
 
 type App struct {

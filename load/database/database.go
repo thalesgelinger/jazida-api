@@ -1,7 +1,7 @@
 package db
 
 import (
-	"new-load/types"
+	"load/types"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -12,6 +12,11 @@ import (
 const (
 	TABLE_NAME = "loads"
 )
+
+type DBClient interface {
+	InsertLoad(load types.Load) error
+	GetAllLoads() ([]types.Load, error)
+}
 
 type DynamoDbClient struct {
 	dbStore *dynamodb.DynamoDB
@@ -44,4 +49,31 @@ func (d DynamoDbClient) InsertLoad(load types.Load) error {
 		return err
 	}
 	return nil
+}
+
+func (d DynamoDbClient) GetAllLoads() ([]types.Load, error) {
+
+	result, err := d.dbStore.Scan(&dynamodb.ScanInput{
+		TableName: aws.String(TABLE_NAME),
+	})
+
+	loads := []types.Load{}
+
+	if err != nil {
+		return loads, err
+	}
+
+	for _, row := range result.Items {
+		var load types.Load
+
+		err := dynamodbattribute.UnmarshalMap(row, &load)
+
+		if err != nil {
+			return []types.Load{}, err
+		}
+
+		loads = append(loads, load)
+	}
+
+	return loads, nil
 }
