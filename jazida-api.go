@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
-	// "github.com/aws/aws-cdk-go/awscdk/v2/awssqs"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -48,11 +48,31 @@ func NewJazidaApiStack(scope constructs.Construct, id string, props *JazidaApiSt
 		},
 	})
 
-	integration := awsapigateway.NewLambdaIntegration(newLoadFunction, nil)
+	loadIntegration := awsapigateway.NewLambdaIntegration(newLoadFunction, nil)
 
 	registerResource := api.Root().AddResource(jsii.String("loads"), nil)
-	registerResource.AddMethod(jsii.String("POST"), integration, nil)
-	registerResource.AddMethod(jsii.String("GET"), integration, nil)
+	registerResource.AddMethod(jsii.String("POST"), loadIntegration, nil)
+	registerResource.AddMethod(jsii.String("GET"), loadIntegration, nil)
+
+	signatureBucket := awss3.NewBucket(stack, jsii.String("SIGNATURES"), &awss3.BucketProps{
+		RemovalPolicy: awscdk.RemovalPolicy_DESTROY,
+	})
+
+	signatureUploadFunction := awslambda.NewFunction(stack, jsii.String("upload"), &awslambda.FunctionProps{
+		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
+		Code:    awslambda.AssetCode_FromAsset(jsii.String("upload/function.zip"), nil),
+		Handler: jsii.String("main"),
+		Environment: &map[string]*string{
+			"BUCKET_NAME": signatureBucket.BucketName(),
+		},
+	})
+
+	signatureBucket.GrantReadWrite(signatureUploadFunction, nil)
+
+	signatureIntegration := awsapigateway.NewLambdaIntegration(signatureUploadFunction, nil)
+
+	signatureUploadResource := api.Root().AddResource(jsii.String("signature"), nil)
+	signatureUploadResource.AddMethod(jsii.String("POST"), signatureIntegration, nil)
 
 	return stack
 }
