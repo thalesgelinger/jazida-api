@@ -1,7 +1,6 @@
 package types
 
-
 type PreSignedUrl struct {
-	UploadURL string `json:"uploadUrl"`
-	Key       string `json:"key"`
+	URL string `json:"url"`
+	Key string `json:"key"`
 }

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -24,9 +23,9 @@ func NewApiHandler(s3Svc *s3.S3) ApiHandler {
 	}
 }
 
-func (a *ApiHandler) HandlePreSignedUrl(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (a *ApiHandler) HandlePreSignedUrl(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	key := fmt.Sprintf("uploads/%d.jpg", time.Now().Unix())
+	key := fmt.Sprintf("%d.jpg", time.Now().Unix())
 	req, _ := a.bucket.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String(os.Getenv("BUCKET_NAME")),
 		Key:    aws.String(key),
@@ -40,8 +39,8 @@ func (a *ApiHandler) HandlePreSignedUrl(ctx context.Context, request events.APIG
 	}
 
 	response := types.PreSignedUrl{
-		UploadURL: urlStr,
-		Key:       key,
+		URL: urlStr,
+		Key: key,
 	}
 
 	body, err := json.Marshal(response)
@@ -56,4 +55,45 @@ func (a *ApiHandler) HandlePreSignedUrl(ctx context.Context, request events.APIG
 		StatusCode: http.StatusOK,
 		Body:       string(body),
 	}, nil
+}
+
+func (a *ApiHandler) GetShowUrl(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	key := request.PathParameters["key"]
+
+	if key == "" {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       `{"error": "Missing key in path parameters"}`,
+		}, nil
+	}
+
+	req, _ := a.bucket.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(os.Getenv("BUCKET_NAME")),
+		Key:    aws.String(key),
+	})
+	urlStr, err := req.Presign(15 * time.Minute)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       fmt.Sprintf(`{"error": "%s"}`, err.Error()),
+		}, err
+	}
+
+	response := types.PreSignedUrl{
+		URL: urlStr,
+	}
+
+	body, err := json.Marshal(response)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       fmt.Sprintf(`{"error": "%s"}`, err.Error()),
+		}, err
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(body),
+	}, nil
+
 }

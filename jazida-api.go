@@ -72,7 +72,10 @@ func NewJazidaApiStack(scope constructs.Construct, id string, props *JazidaApiSt
 	signatureIntegration := awsapigateway.NewLambdaIntegration(signatureUploadFunction, nil)
 
 	signatureUploadResource := api.Root().AddResource(jsii.String("signature"), nil)
+	keySignatureResource := signatureUploadResource.AddResource(jsii.String("{key}"), nil)
+
 	signatureUploadResource.AddMethod(jsii.String("POST"), signatureIntegration, nil)
+	keySignatureResource.AddMethod(jsii.String("GET"), signatureIntegration, nil)
 
 	return stack
 }
