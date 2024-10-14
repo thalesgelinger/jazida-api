@@ -26,7 +26,7 @@ func NewLoadHandler(db *db.Queries) *LoadHandler {
 func (l *LoadHandler) GetLoads(w http.ResponseWriter, r *http.Request) {
 	loads, err := l.db.GetLoads(r.Context())
 	if err != nil {
-		log.Fatal("Error getting loads")
+		log.Fatal("Error getting loads", err.Error())
 		return
 	}
 
