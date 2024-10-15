@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"jazida-api/internal/handler"
@@ -9,6 +10,7 @@ import (
 	"jazida-api/views"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Server struct {
@@ -56,9 +58,34 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) setupLoadRoutes() {
+	newLoadsChannel := make(chan string)
 
 	lh := handler.NewLoadHandler(queries)
 
+	s.router.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		// Set headers for SSE
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+
+		// Create a context for handling client disconnection
+		_, cancel := context.WithCancel(r.Context())
+		defer cancel()
+
+		// Send data to the client
+		go func() {
+			for data := range newLoadsChannel {
+				fmt.Fprintf(w, "data: %s\n\n", data)
+				w.(http.Flusher).Flush()
+			}
+		}()
+
+		// Simulate sending data periodically
+		for {
+			newLoadsChannel <- time.Now().Format(time.TimeOnly)
+			time.Sleep(1 * time.Second)
+		}
+	})
 	s.router.HandleFunc("GET /api/loads", midw.WithAdminAuth(lh.GetLoads))
 	s.router.HandleFunc("POST /api/load", midw.WithLoaderAuth(lh.SaveLoad))
 	s.router.HandleFunc("POST /api/signature", midw.Cors(midw.WithLoaderAuth(lh.SaveSignature)))

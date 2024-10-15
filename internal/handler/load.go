@@ -48,14 +48,16 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	l.db.CreateLoad(r.Context(), db.CreateLoadParams{
+	newLoadParams := db.CreateLoadParams{
 		Client:        newLoad.Client,
 		Plate:         newLoad.Plate,
 		Material:      newLoad.Material,
 		Quantity:      newLoad.Quantity,
 		Paymentmethod: newLoad.PaymentMethod,
 		Signature:     newLoad.Signature,
-	})
+	}
+
+	l.db.CreateLoad(r.Context(), newLoadParams)
 }
 
 func (l *LoadHandler) SaveSignature(w http.ResponseWriter, r *http.Request) {
