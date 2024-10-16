@@ -5,5 +5,5 @@ SELECT
 FROM clients;
 
 -- name: AddClient :exec
-INSERT INTO clients (name,plate) 
-VALUES ($1,$2);
+INSERT INTO clients (name, plate) 
+VALUES (?, ?);

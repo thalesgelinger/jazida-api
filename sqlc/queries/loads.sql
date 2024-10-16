@@ -1,6 +1,6 @@
 -- name: CreateLoad :exec
-INSERT INTO loads (client,plate,material,quantity,paymentmethod,signature) 
-VALUES ($1,$2,$3,$4,$5,$6);
+INSERT INTO loads (client, plate, material, quantity, paymentmethod, signature) 
+VALUES (?, ?, ?, ?, ?, ?);
 
 -- name: GetLoads :many
 SELECT 
