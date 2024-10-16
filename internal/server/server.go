@@ -1,16 +1,16 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"jazida-api/internal/handler"
 	"jazida-api/internal/infra/db"
 	"jazida-api/internal/middleware"
-	"jazida-api/views"
 	"net/http"
 	"os"
 	"time"
+
+	"golang.org/x/net/websocket"
 )
 
 type Server struct {
@@ -54,39 +54,23 @@ func (s *Server) Start() error {
 	fs := http.FileServer(http.Dir(signaturesPath))
 
 	s.router.Handle("/api/signatures/", http.StripPrefix("/api/signatures/", fs))
+
 	return http.ListenAndServe(s.listenAddr, s.router)
 }
 
 func (s *Server) setupLoadRoutes() {
-	newLoadsChannel := make(chan string)
 
-	lh := handler.NewLoadHandler(queries)
+	socket := handler.NewSocket()
+	lh := handler.NewLoadHandler(queries, socket)
 
-	s.router.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		// Set headers for SSE
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Connection", "keep-alive")
-
-		// Create a context for handling client disconnection
-		_, cancel := context.WithCancel(r.Context())
-		defer cancel()
-
-		// Send data to the client
-		go func() {
-			for data := range newLoadsChannel {
-				fmt.Fprintf(w, "data: %s\n\n", data)
-				w.(http.Flusher).Flush()
-			}
-		}()
-
-		// Simulate sending data periodically
+	s.router.Handle("/new-load-added", websocket.Handler(func(w *websocket.Conn) {
+		socket.AddClient(w)
+		defer socket.RemoveClient(w)
 		for {
-			newLoadsChannel <- time.Now().Format(time.TimeOnly)
 			time.Sleep(1 * time.Second)
 		}
-	})
-	s.router.HandleFunc("GET /api/loads", midw.WithAdminAuth(lh.GetLoads))
+	}))
+	s.router.HandleFunc("GET /api/loads", withCors(midw.WithAdminAuth(lh.GetLoads)))
 	s.router.HandleFunc("POST /api/load", midw.WithLoaderAuth(lh.SaveLoad))
 	s.router.HandleFunc("POST /api/signature", midw.Cors(midw.WithLoaderAuth(lh.SaveSignature)))
 }
@@ -100,10 +84,20 @@ func (s *Server) setupClientsRoutes() {
 
 func (s *Server) setupViews() {
 
-	vh := views.NewViewHandler(queries)
+	fs := http.FileServer(http.Dir("./web/dist"))
 
-	s.router.HandleFunc("/", vh.Home)
-	s.router.HandleFunc("/clients", vh.Config)
-	s.router.HandleFunc("GET /new-client", vh.NewFormClient)
-	s.router.HandleFunc("POST /new-client", vh.AddClient)
+	s.router.Handle("/", fs)
+}
+
+func withCors(handleFunc func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handleFunc(w, r)
+	}
 }

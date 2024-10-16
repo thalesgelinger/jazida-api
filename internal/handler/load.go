@@ -14,12 +14,14 @@ import (
 )
 
 type LoadHandler struct {
-	db *db.Queries
+	db     *db.Queries
+	socket *Socket
 }
 
-func NewLoadHandler(db *db.Queries) *LoadHandler {
+func NewLoadHandler(db *db.Queries, socket *Socket) *LoadHandler {
 	return &LoadHandler{
-		db: db,
+		db:     db,
+		socket: socket,
 	}
 }
 
@@ -58,6 +60,14 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 	}
 
 	l.db.CreateLoad(r.Context(), newLoadParams)
+
+	newLoadJson, err := json.Marshal(newLoadParams)
+	if err != nil {
+		http.Error(w, "Error marshaling new load", http.StatusInternalServerError)
+		return
+	}
+
+	l.socket.Broadcast(string(newLoadJson))
 }
 
 func (l *LoadHandler) SaveSignature(w http.ResponseWriter, r *http.Request) {
