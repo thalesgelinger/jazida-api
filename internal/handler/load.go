@@ -44,24 +44,15 @@ func (l *LoadHandler) GetLoads(w http.ResponseWriter, r *http.Request) {
 
 func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 
-	var newLoad entity.Load
+	var newLoad db.CreateLoadParams
 	if err := json.NewDecoder(r.Body).Decode(&newLoad); err != nil {
 		http.Error(w, "Error decoding request body", http.StatusBadRequest)
 		return
 	}
 
-	newLoadParams := db.CreateLoadParams{
-		Client:        newLoad.Client,
-		Plate:         newLoad.Plate,
-		Material:      newLoad.Material,
-		Quantity:      newLoad.Quantity,
-		Paymentmethod: newLoad.PaymentMethod,
-		Signature:     newLoad.Signature,
-	}
+	l.db.CreateLoad(r.Context(), newLoad)
 
-	l.db.CreateLoad(r.Context(), newLoadParams)
-
-	newLoadJson, err := json.Marshal(newLoadParams)
+	newLoadJson, err := json.Marshal(newLoad)
 	if err != nil {
 		http.Error(w, "Error marshaling new load", http.StatusInternalServerError)
 		return

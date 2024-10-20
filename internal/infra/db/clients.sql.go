@@ -7,33 +7,32 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const addClient = `-- name: AddClient :exec
-INSERT INTO clients (name, plate) 
-VALUES (?, ?)
+INSERT INTO clients (name) 
+VALUES (?)
 `
 
-type AddClientParams struct {
-	Name  string `json:"name"`
-	Plate string `json:"plate"`
-}
-
-func (q *Queries) AddClient(ctx context.Context, arg AddClientParams) error {
-	_, err := q.db.ExecContext(ctx, addClient, arg.Name, arg.Plate)
+func (q *Queries) AddClient(ctx context.Context, name string) error {
+	_, err := q.db.ExecContext(ctx, addClient, name)
 	return err
 }
 
 const getClients = `-- name: GetClients :many
 SELECT 
-    name,    
-    plate    
-FROM clients
+    c.id,
+    c.name,    
+    p.plate    
+FROM clients c
+LEFT JOIN plates p ON c.id = p.client_id
 `
 
 type GetClientsRow struct {
-	Name  string `json:"name"`
-	Plate string `json:"plate"`
+	ID    int64          `json:"id"`
+	Name  string         `json:"name"`
+	Plate sql.NullString `json:"plate"`
 }
 
 func (q *Queries) GetClients(ctx context.Context) ([]GetClientsRow, error) {
@@ -45,7 +44,7 @@ func (q *Queries) GetClients(ctx context.Context) ([]GetClientsRow, error) {
 	var items []GetClientsRow
 	for rows.Next() {
 		var i GetClientsRow
-		if err := rows.Scan(&i.Name, &i.Plate); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Plate); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

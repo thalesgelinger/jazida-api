@@ -5,6 +5,7 @@ import (
 	"jazida-api/internal/infra/db"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type ClientHandler struct {
@@ -34,11 +35,15 @@ func (c *ClientHandler) GetClients(w http.ResponseWriter, r *http.Request) {
 	responseMap := map[string][]string{}
 
 	for _, client := range clients {
-		if len(responseMap[client.Name]) == 0 {
-			responseMap[client.Name] = []string{client.Plate}
-		} else {
-			responseMap[client.Name] = append(responseMap[client.Name], client.Plate)
+		plates, err := c.db.GetPlatesByClientId(r.Context(), client.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		clientsResponse = append(clientsResponse, ClientsResponse{
+			Name:   client.Name,
+			Plates: plates,
+		})
 	}
 
 	for name, plates := range responseMap {
@@ -55,4 +60,59 @@ func (c *ClientHandler) GetClients(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (c *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
+
+	type Client struct {
+		Name string `json:"name"`
+	}
+
+	var client Client
+	if err := json.NewDecoder(r.Body).Decode(&client); err != nil {
+		http.Error(w, "Error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	err := c.db.AddClient(r.Context(), client.Name)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (c *ClientHandler) CreatePlate(w http.ResponseWriter, r *http.Request) {
+	clientIdStr := r.PathValue("id")
+
+	clientId, err := strconv.Atoi(clientIdStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	type NewPlate struct {
+		Plate string `json:"plate"`
+	}
+
+	var newPlate NewPlate
+	if err := json.NewDecoder(r.Body).Decode(&newPlate); err != nil {
+		http.Error(w, "Error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	err = c.db.AddPlate(r.Context(), db.AddPlateParams{
+		ClientID: int64(clientId),
+		Plate:    newPlate.Plate,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+
 }

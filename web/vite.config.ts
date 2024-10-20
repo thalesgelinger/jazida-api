@@ -18,7 +18,14 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: false,
                 rewrite: (p) => p.replace(/^\/api/, '')
+            },
+            "/new-load-added": {
+                target: "ws://localhost:8080/new-load-added",
+                changeOrigin: true,
+                secure: false,
+                rewrite: (p) => p.replace(/^\/new-load-added/, '')
             }
+
         }
     }
 })

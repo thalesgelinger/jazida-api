@@ -80,6 +80,8 @@ func (s *Server) setupClientsRoutes() {
 	ch := handler.NewClientHandler(queries)
 
 	s.router.HandleFunc("GET /api/clients", midw.WithLoaderAuth(ch.GetClients))
+	s.router.HandleFunc("POST /api/clients", midw.WithAdminAuth(ch.CreateClient))
+	s.router.HandleFunc("POST /api/clients/{id}/plates", midw.WithAdminAuth(ch.CreatePlate))
 }
 
 func (s *Server) setupViews() {

@@ -1,0 +1,21 @@
+meta {
+  name: Create Client
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/clients
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: admin
+}
+
+body:json {
+  {
+    "name": "João"
+  }
+}

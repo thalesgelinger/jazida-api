@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Table from "$lib/components/ui/table";
     import { onMount } from "svelte";
-    import { api } from "../service/api";
+    import { api, ws } from "../service/api";
 
     type Load = {
         [x: string]: string;
@@ -34,7 +34,6 @@
         });
     });
 
-    const ws = new WebSocket("ws://localhost:8080/new-load-added");
     ws.onmessage = ({ data }) => {
         const newLoad: Load = JSON.parse(data);
         newLoad.paymentMethod = newLoad.paymentmethod;

@@ -10,26 +10,26 @@ import (
 )
 
 const createLoad = `-- name: CreateLoad :exec
-INSERT INTO loads (client, plate, material, quantity, paymentmethod, signature) 
+INSERT INTO loads (client_id, plate_id, material_id, quantity, payment_method, signature) 
 VALUES (?, ?, ?, ?, ?, ?)
 `
 
 type CreateLoadParams struct {
-	Client        string `json:"client"`
-	Plate         string `json:"plate"`
-	Material      string `json:"material"`
+	ClientID      int64  `json:"client_id"`
+	PlateID       int64  `json:"plate_id"`
+	MaterialID    int64  `json:"material_id"`
 	Quantity      string `json:"quantity"`
-	Paymentmethod string `json:"paymentmethod"`
+	PaymentMethod string `json:"payment_method"`
 	Signature     string `json:"signature"`
 }
 
 func (q *Queries) CreateLoad(ctx context.Context, arg CreateLoadParams) error {
 	_, err := q.db.ExecContext(ctx, createLoad,
-		arg.Client,
-		arg.Plate,
-		arg.Material,
+		arg.ClientID,
+		arg.PlateID,
+		arg.MaterialID,
 		arg.Quantity,
-		arg.Paymentmethod,
+		arg.PaymentMethod,
 		arg.Signature,
 	)
 	return err
@@ -37,32 +37,45 @@ func (q *Queries) CreateLoad(ctx context.Context, arg CreateLoadParams) error {
 
 const getLoads = `-- name: GetLoads :many
 SELECT 
-    id,
-    client,    
-    plate,    
-    material,
-    quantity,     
-    paymentmethod,
-    signature
-FROM loads
+    l.id,
+    c.name AS client,    
+    p.plate AS plate,    
+    m.name AS material,
+    l.quantity,     
+    l.payment_method,
+    l.signature
+FROM loads l
+JOIN clients c ON l.client_id = c.id
+JOIN plates p ON l.plate_id = p.id
+JOIN materials m ON l.material_id = m.id
 `
 
-func (q *Queries) GetLoads(ctx context.Context) ([]Load, error) {
+type GetLoadsRow struct {
+	ID            int64  `json:"id"`
+	Client        string `json:"client"`
+	Plate         string `json:"plate"`
+	Material      string `json:"material"`
+	Quantity      string `json:"quantity"`
+	PaymentMethod string `json:"payment_method"`
+	Signature     string `json:"signature"`
+}
+
+func (q *Queries) GetLoads(ctx context.Context) ([]GetLoadsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getLoads)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Load
+	var items []GetLoadsRow
 	for rows.Next() {
-		var i Load
+		var i GetLoadsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Client,
 			&i.Plate,
 			&i.Material,
 			&i.Quantity,
-			&i.Paymentmethod,
+			&i.PaymentMethod,
 			&i.Signature,
 		); err != nil {
 			return nil, err
