@@ -116,3 +116,41 @@ func (c *ClientHandler) CreatePlate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 
 }
+
+func (c *ClientHandler) GetMaterials(w http.ResponseWriter, r *http.Request) {
+	materials, err := c.db.GetMaterials(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(materials)
+
+	if err != nil {
+		http.Error(w, "Error sending materials", http.StatusInternalServerError)
+		return
+	}
+
+}
+func (c *ClientHandler) CreateMaterial(w http.ResponseWriter, r *http.Request) {
+
+	type NewMaterial struct {
+		Material string `json:"material"`
+	}
+
+	var newMaterial NewMaterial
+
+	if err := json.NewDecoder(r.Body).Decode(&newMaterial); err != nil {
+		http.Error(w, "Error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	err := c.db.AddMaterial(r.Context(), newMaterial.Material)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}

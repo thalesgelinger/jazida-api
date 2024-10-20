@@ -43,14 +43,34 @@ func (l *LoadHandler) GetLoads(w http.ResponseWriter, r *http.Request) {
 }
 
 func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
+	type NewLoadParams struct {
+		ClientID      int64  `json:"clientId"`
+		PlateID       int64  `json:"plateId"`
+		MaterialID    int64  `json:"materialId"`
+		Quantity      string `json:"quantity"`
+		PaymentMethod string `json:"paymentMethod"`
+		Signature     string `json:"signature"`
+	}
 
-	var newLoad db.CreateLoadParams
+	var newLoad NewLoadParams
 	if err := json.NewDecoder(r.Body).Decode(&newLoad); err != nil {
 		http.Error(w, "Error decoding request body", http.StatusBadRequest)
 		return
 	}
 
-	l.db.CreateLoad(r.Context(), newLoad)
+	err := l.db.CreateLoad(r.Context(), db.CreateLoadParams{
+		ClientID:      newLoad.ClientID,
+		PlateID:       newLoad.PlateID,
+		MaterialID:    newLoad.MaterialID,
+		Quantity:      newLoad.Quantity,
+		PaymentMethod: newLoad.PaymentMethod,
+		Signature:     newLoad.Signature,
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	newLoadJson, err := json.Marshal(newLoad)
 	if err != nil {

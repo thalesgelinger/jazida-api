@@ -1,0 +1,21 @@
+meta {
+  name: Add Material
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/api/materials
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: admin
+}
+
+body:json {
+  {
+    "material": "Saibro"
+  }
+}
