@@ -24,6 +24,19 @@ func (q *Queries) AddPlate(ctx context.Context, arg AddPlateParams) error {
 	return err
 }
 
+const getPlateById = `-- name: GetPlateById :one
+SELECT plate
+FROM plates
+WHERE id = ?
+`
+
+func (q *Queries) GetPlateById(ctx context.Context, id int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getPlateById, id)
+	var plate string
+	err := row.Scan(&plate)
+	return plate, err
+}
+
 const getPlatesByClientId = `-- name: GetPlatesByClientId :many
 SELECT id, plate 
 FROM plates 

@@ -15,3 +15,4 @@ FROM loads l
 JOIN clients c ON l.client_id = c.id
 JOIN plates p ON l.plate_id = p.id
 JOIN materials m ON l.material_id = m.id;
+

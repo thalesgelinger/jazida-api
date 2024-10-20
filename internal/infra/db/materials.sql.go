@@ -19,6 +19,19 @@ func (q *Queries) AddMaterial(ctx context.Context, name string) error {
 	return err
 }
 
+const getMaterialById = `-- name: GetMaterialById :one
+SELECT name
+FROM materials
+WHERE id = ?
+`
+
+func (q *Queries) GetMaterialById(ctx context.Context, id int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getMaterialById, id)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}
+
 const getMaterials = `-- name: GetMaterials :many
 SELECT 
     id, 

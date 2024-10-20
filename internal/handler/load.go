@@ -72,7 +72,41 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newLoadJson, err := json.Marshal(newLoad)
+	type NewLoadSocketParams struct {
+		Client        string `json:"client"`
+		Plate         string `json:"plate"`
+		Material      string `json:"material"`
+		Quantity      string `json:"quantity"`
+		PaymentMethod string `json:"paymentMethod"`
+		Signature     string `json:"signature"`
+	}
+
+	ctx := r.Context()
+	client, err := l.db.GetClientById(ctx, newLoad.ClientID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	plate, err := l.db.GetPlateById(ctx, newLoad.PlateID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	material, err := l.db.GetMaterialById(ctx, newLoad.MaterialID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	newLoadJson, err := json.Marshal(NewLoadSocketParams{
+		Client:        client,
+		Plate:         plate,
+		Material:      material,
+		Quantity:      newLoad.Quantity,
+		PaymentMethod: newLoad.PaymentMethod,
+		Signature:     newLoad.Signature,
+	})
+
 	if err != nil {
 		http.Error(w, "Error marshaling new load", http.StatusInternalServerError)
 		return

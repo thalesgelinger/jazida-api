@@ -19,6 +19,19 @@ func (q *Queries) AddClient(ctx context.Context, name string) error {
 	return err
 }
 
+const getClientById = `-- name: GetClientById :one
+SELECT name 
+FROM clients
+WHERE id = ?
+`
+
+func (q *Queries) GetClientById(ctx context.Context, id int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getClientById, id)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}
+
 const getClients = `-- name: GetClients :many
 SELECT 
     c.id,

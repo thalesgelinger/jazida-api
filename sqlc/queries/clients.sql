@@ -8,3 +8,7 @@ FROM clients c;
 INSERT INTO clients (name) 
 VALUES (?);
 
+-- name: GetClientById :one
+SELECT name 
+FROM clients
+WHERE id = ?;
