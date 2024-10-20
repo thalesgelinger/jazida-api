@@ -21,23 +21,24 @@ func (q *Queries) AddMaterial(ctx context.Context, name string) error {
 
 const getMaterials = `-- name: GetMaterials :many
 SELECT 
+    id, 
     name
 FROM materials
 `
 
-func (q *Queries) GetMaterials(ctx context.Context) ([]string, error) {
+func (q *Queries) GetMaterials(ctx context.Context) ([]Material, error) {
 	rows, err := q.db.QueryContext(ctx, getMaterials)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []Material
 	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
+		var i Material
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}
-		items = append(items, name)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

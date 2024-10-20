@@ -3,6 +3,6 @@ INSERT INTO plates (client_id, plate)
 VALUES (?, ?);
 
 -- name: GetPlatesByClientId :many
-SELECT plate 
+SELECT id, plate 
 FROM plates 
 WHERE client_id = ?;

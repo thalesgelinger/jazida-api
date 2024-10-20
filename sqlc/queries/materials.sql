@@ -1,5 +1,6 @@
 -- name: GetMaterials :many
 SELECT 
+    id, 
     name
 FROM materials;
 

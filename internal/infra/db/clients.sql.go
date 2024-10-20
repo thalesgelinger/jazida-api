@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const addClient = `-- name: AddClient :exec
@@ -23,28 +22,20 @@ func (q *Queries) AddClient(ctx context.Context, name string) error {
 const getClients = `-- name: GetClients :many
 SELECT 
     c.id,
-    c.name,    
-    p.plate    
+    c.name
 FROM clients c
-LEFT JOIN plates p ON c.id = p.client_id
 `
 
-type GetClientsRow struct {
-	ID    int64          `json:"id"`
-	Name  string         `json:"name"`
-	Plate sql.NullString `json:"plate"`
-}
-
-func (q *Queries) GetClients(ctx context.Context) ([]GetClientsRow, error) {
+func (q *Queries) GetClients(ctx context.Context) ([]Client, error) {
 	rows, err := q.db.QueryContext(ctx, getClients)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetClientsRow
+	var items []Client
 	for rows.Next() {
-		var i GetClientsRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Plate); err != nil {
+		var i Client
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

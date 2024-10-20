@@ -1,7 +1,23 @@
-<script>
+<script lang="ts">
+    import { onMount } from "svelte";
+    import { api } from "../service/api";
     import { Button } from "./components/ui/button";
 
-    const materials = ["Saibro", "Areia"];
+    type Material = {
+        id: number;
+        name: string;
+    };
+
+    let materials: Material[] = [];
+
+    const getClients = () => {
+        api.get<Material[]>("/materials", {
+            headers: {
+                Authorization: "loader",
+            },
+        }).then((response) => (materials = response.data));
+    };
+    onMount(getClients);
 </script>
 
 <div
@@ -11,9 +27,9 @@
     <div class="w-full">
         <ul class="flex flex-col w-full p-4 gap-2">
             {#each materials as material}
-                <li class="rounded-md border p-4">{material}</li>
+                <li class="rounded-md border p-4">{material.name}</li>
             {/each}
-            <Button>Adicionar</Button>
+            <Button>Novo Material</Button>
         </ul>
     </div>
 </div>

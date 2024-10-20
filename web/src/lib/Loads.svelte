@@ -14,15 +14,17 @@
         signature: string;
     };
 
+    type PaymentMethod = "CASH" | "INSTALLMENT";
+
     const getLoads = async (): Promise<Load[]> => {
         const response = await api.get("/loads", {
             headers: {
                 Authorization: "admin",
             },
         });
-        return response.data.map((d: { paymentmethod: any }) => ({
+        return response.data.map((d: { payment_method: PaymentMethod }) => ({
             ...d,
-            paymentMethod: d.paymentmethod,
+            paymentMethod: d.payment_method === "CASH" ? "A vista" : "A prazo",
         })) as Load[];
     };
 
@@ -36,7 +38,8 @@
 
     ws.onmessage = ({ data }) => {
         const newLoad: Load = JSON.parse(data);
-        newLoad.paymentMethod = newLoad.paymentmethod;
+        newLoad.paymentMethod =
+            newLoad.payment_method === "CASH" ? "A vista" : "A prazo";
         newLoad.id = `${loads.length + 1}`;
         loads = [newLoad, ...loads];
     };

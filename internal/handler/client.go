@@ -19,8 +19,9 @@ func NewClientHandler(db *db.Queries) *ClientHandler {
 }
 
 type ClientsResponse struct {
-	Name   string   `json:"name"`
-	Plates []string `json:"plates"`
+	Id     int                         `json:"id"`
+	Name   string                      `json:"name"`
+	Plates []db.GetPlatesByClientIdRow `json:"plates"`
 }
 
 func (c *ClientHandler) GetClients(w http.ResponseWriter, r *http.Request) {
@@ -32,26 +33,18 @@ func (c *ClientHandler) GetClients(w http.ResponseWriter, r *http.Request) {
 
 	clientsResponse := []ClientsResponse{}
 
-	responseMap := map[string][]string{}
-
 	for _, client := range clients {
 		plates, err := c.db.GetPlatesByClientId(r.Context(), client.ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		clientsResponse = append(clientsResponse, ClientsResponse{
+			Id:     int(client.ID),
 			Name:   client.Name,
 			Plates: plates,
 		})
-	}
-
-	for name, plates := range responseMap {
-		newClientResponse := ClientsResponse{
-			Name:   name,
-			Plates: plates,
-		}
-		clientsResponse = append(clientsResponse, newClientResponse)
 	}
 
 	err = json.NewEncoder(w).Encode(clientsResponse)

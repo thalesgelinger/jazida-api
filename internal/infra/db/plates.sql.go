@@ -25,24 +25,29 @@ func (q *Queries) AddPlate(ctx context.Context, arg AddPlateParams) error {
 }
 
 const getPlatesByClientId = `-- name: GetPlatesByClientId :many
-SELECT plate 
+SELECT id, plate 
 FROM plates 
 WHERE client_id = ?
 `
 
-func (q *Queries) GetPlatesByClientId(ctx context.Context, clientID int64) ([]string, error) {
+type GetPlatesByClientIdRow struct {
+	ID    int64  `json:"id"`
+	Plate string `json:"plate"`
+}
+
+func (q *Queries) GetPlatesByClientId(ctx context.Context, clientID int64) ([]GetPlatesByClientIdRow, error) {
 	rows, err := q.db.QueryContext(ctx, getPlatesByClientId, clientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []GetPlatesByClientIdRow
 	for rows.Next() {
-		var plate string
-		if err := rows.Scan(&plate); err != nil {
+		var i GetPlatesByClientIdRow
+		if err := rows.Scan(&i.ID, &i.Plate); err != nil {
 			return nil, err
 		}
-		items = append(items, plate)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

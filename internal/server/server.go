@@ -82,7 +82,7 @@ func (s *Server) setupClientsRoutes() {
 	s.router.HandleFunc("GET /api/clients", midw.WithLoaderAuth(ch.GetClients))
 	s.router.HandleFunc("POST /api/clients", midw.WithAdminAuth(ch.CreateClient))
 	s.router.HandleFunc("POST /api/clients/{id}/plates", midw.WithAdminAuth(ch.CreatePlate))
-	s.router.HandleFunc("GET /api/materials", midw.WithAdminAuth(ch.GetMaterials))
+	s.router.HandleFunc("GET /api/materials", midw.WithLoaderAuth(ch.GetMaterials))
 	s.router.HandleFunc("POST /api/materials", midw.WithAdminAuth(ch.CreateMaterial))
 }
 
