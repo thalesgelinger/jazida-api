@@ -35,6 +35,10 @@ func (c *ClientHandler) GetClients(w http.ResponseWriter, r *http.Request) {
 
 	for _, client := range clients {
 		plates, err := c.db.GetPlatesByClientId(r.Context(), client.ID)
+		if plates == nil {
+			plates = []db.GetPlatesByClientIdRow{}
+		}
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
