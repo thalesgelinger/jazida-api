@@ -47,8 +47,6 @@ func (s *Server) Start() error {
 	s.setupLoadRoutes()
 	s.setupClientsRoutes()
 
-	s.setupViews()
-
 	cwd, _ := os.Getwd()
 	signaturesPath := fmt.Sprintf("%s/signatures", cwd)
 	fs := http.FileServer(http.Dir(signaturesPath))
