@@ -2,9 +2,9 @@
     import * as Table from "$lib/components/ui/table";
     import { onMount } from "svelte";
     import { api, ws } from "../service/api";
+    import { Button } from "./components/ui/button";
 
     type Load = {
-        [x: string]: string;
         id: string;
         client: string;
         plate: string;
@@ -22,10 +22,18 @@
                 Authorization: "admin",
             },
         });
-        return response.data.map((d: { payment_method: PaymentMethod }) => ({
-            ...d,
-            paymentMethod: d.payment_method === "CASH" ? "A vista" : "A prazo",
-        })) as Load[];
+        return response.data.map((d: { payment_method: PaymentMethod }) => {
+            const load = {
+                ...d,
+                paymentMethod:
+                    d.payment_method === "CASH" ? "A vista" : "A prazo",
+            };
+
+            // @ts-ignore
+            delete load.payment_method;
+
+            return load;
+        }) as Load[];
     };
 
     let loads: Load[] = [];
@@ -37,16 +45,54 @@
     });
 
     ws.onmessage = ({ data }) => {
-        const newLoad: Load = JSON.parse(data);
+        const newLoad: any = JSON.parse(data);
         newLoad.paymentMethod =
             newLoad.payment_method === "CASH" ? "A vista" : "A prazo";
         newLoad.id = `${loads.length + 1}`;
         loads = [newLoad, ...loads];
     };
+
+    function translateKey(key: keyof Load): string {
+        switch (key) {
+            case "id":
+                return "ID";
+            case "material":
+                return "Material";
+            case "plate":
+                return "Placa";
+            case "client":
+                return "Cliente";
+            case "quantity":
+                return "Quantidade";
+            case "signature":
+                return "Assinatura";
+            case "paymentMethod":
+                return "Método de pagamento";
+        }
+    }
+
+    function downloadCSV() {
+        const header = [
+            Object.keys(loads[0]).map((key) => translateKey(key as keyof Load)),
+        ];
+        const csv = header
+            .concat(loads.map((item) => Object.values(item)))
+            .map((row) => row.map((value) => `"${value}"`).join(","))
+            .join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "carregamentos.csv";
+
+        link.click();
+    }
 </script>
 
 <div class="rounded-md border">
-    <h1 class="w-full text-center p-4 text-lg">Carregamentos</h1>
+    <div class="flex p-4 items-center">
+        <h1 class="w-full text-center p-4 text-lg">Carregamentos</h1>
+        <Button on:click={downloadCSV}>Baixar CSV</Button>
+    </div>
     <Table.Root>
         <Table.Header>
             <Table.Row>
