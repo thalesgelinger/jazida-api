@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"jazida-api/internal/server"
@@ -10,8 +9,8 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -25,27 +24,24 @@ func main() {
 
 	ctx := context.Background()
 
-	// Open SQLite database connection
-	db, err := sql.Open("sqlite3", "./db/db.sqlite")
+	poolConfig, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+
 	if err != nil {
-		slog.Error(fmt.Sprintf("Unable to open SQLite database: %s", err.Error()))
+		slog.Error(fmt.Sprintf("Unable to parse database URL: %s", err.Error()))
 		return
 	}
-	defer db.Close()
-
-	// Test the connection
-	err = db.PingContext(ctx)
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		slog.Error(fmt.Sprintf("DB not connected: %s", err.Error()))
 		return
 	}
+	defer pool.Close()
+
 	slog.Info("DB connected")
 
-	// Pass the SQLite db connection to the server
-	server := server.NewServer(*port, db)
+	server := server.NewServer(*port, pool)
 
 	slog.Info(fmt.Sprintf("Server running at port: %s", *port))
 
-	log.Fatal(server.Start(), db)
+	log.Fatal(server.Start(), pool)
 }
-

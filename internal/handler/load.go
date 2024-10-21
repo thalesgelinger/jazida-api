@@ -34,6 +34,10 @@ func (l *LoadHandler) GetLoads(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	if loads == nil {
+		loads = []db.GetLoadsRow{}
+	}
+
 	err = json.NewEncoder(w).Encode(loads)
 
 	if err != nil {
@@ -44,9 +48,9 @@ func (l *LoadHandler) GetLoads(w http.ResponseWriter, r *http.Request) {
 
 func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 	type NewLoadParams struct {
-		ClientID      int64  `json:"clientId"`
-		PlateID       int64  `json:"plateId"`
-		MaterialID    int64  `json:"materialId"`
+		ClientID      int32  `json:"clientId"`
+		PlateID       int32  `json:"plateId"`
+		MaterialID    int32  `json:"materialId"`
 		Quantity      string `json:"quantity"`
 		PaymentMethod string `json:"paymentMethod"`
 		Signature     string `json:"signature"`

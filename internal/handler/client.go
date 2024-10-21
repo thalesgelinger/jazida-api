@@ -101,7 +101,7 @@ func (c *ClientHandler) CreatePlate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = c.db.AddPlate(r.Context(), db.AddPlateParams{
-		ClientID: int64(clientId),
+		ClientID: int32(clientId),
 		Plate:    newPlate.Plate,
 	})
 
@@ -119,6 +119,10 @@ func (c *ClientHandler) GetMaterials(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	if materials == nil {
+		materials = []db.Material{}
 	}
 
 	err = json.NewEncoder(w).Encode(materials)

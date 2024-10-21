@@ -11,22 +11,22 @@ import (
 
 const addClient = `-- name: AddClient :exec
 INSERT INTO clients (name) 
-VALUES (?)
+VALUES ($1)
 `
 
 func (q *Queries) AddClient(ctx context.Context, name string) error {
-	_, err := q.db.ExecContext(ctx, addClient, name)
+	_, err := q.db.Exec(ctx, addClient, name)
 	return err
 }
 
 const getClientById = `-- name: GetClientById :one
 SELECT name 
 FROM clients
-WHERE id = ?
+WHERE id = $1
 `
 
-func (q *Queries) GetClientById(ctx context.Context, id int64) (string, error) {
-	row := q.db.QueryRowContext(ctx, getClientById, id)
+func (q *Queries) GetClientById(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRow(ctx, getClientById, id)
 	var name string
 	err := row.Scan(&name)
 	return name, err
@@ -40,7 +40,7 @@ FROM clients c
 `
 
 func (q *Queries) GetClients(ctx context.Context) ([]Client, error) {
-	rows, err := q.db.QueryContext(ctx, getClients)
+	rows, err := q.db.Query(ctx, getClients)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +52,6 @@ func (q *Queries) GetClients(ctx context.Context) ([]Client, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

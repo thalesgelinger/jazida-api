@@ -11,22 +11,22 @@ import (
 
 const addMaterial = `-- name: AddMaterial :exec
 INSERT INTO materials (name) 
-VALUES (?)
+VALUES ($1)
 `
 
 func (q *Queries) AddMaterial(ctx context.Context, name string) error {
-	_, err := q.db.ExecContext(ctx, addMaterial, name)
+	_, err := q.db.Exec(ctx, addMaterial, name)
 	return err
 }
 
 const getMaterialById = `-- name: GetMaterialById :one
 SELECT name
 FROM materials
-WHERE id = ?
+WHERE id = $1
 `
 
-func (q *Queries) GetMaterialById(ctx context.Context, id int64) (string, error) {
-	row := q.db.QueryRowContext(ctx, getMaterialById, id)
+func (q *Queries) GetMaterialById(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRow(ctx, getMaterialById, id)
 	var name string
 	err := row.Scan(&name)
 	return name, err
@@ -40,7 +40,7 @@ FROM materials
 `
 
 func (q *Queries) GetMaterials(ctx context.Context) ([]Material, error) {
-	rows, err := q.db.QueryContext(ctx, getMaterials)
+	rows, err := q.db.Query(ctx, getMaterials)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +52,6 @@ func (q *Queries) GetMaterials(ctx context.Context) ([]Material, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

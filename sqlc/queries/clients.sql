@@ -6,9 +6,10 @@ FROM clients c;
 
 -- name: AddClient :exec
 INSERT INTO clients (name) 
-VALUES (?);
+VALUES ($1);
 
 -- name: GetClientById :one
 SELECT name 
 FROM clients
-WHERE id = ?;
+WHERE id = $1;
+

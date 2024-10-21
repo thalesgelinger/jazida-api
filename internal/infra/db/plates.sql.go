@@ -11,27 +11,27 @@ import (
 
 const addPlate = `-- name: AddPlate :exec
 INSERT INTO plates (client_id, plate) 
-VALUES (?, ?)
+VALUES ($1, $2)
 `
 
 type AddPlateParams struct {
-	ClientID int64  `json:"client_id"`
+	ClientID int32  `json:"client_id"`
 	Plate    string `json:"plate"`
 }
 
 func (q *Queries) AddPlate(ctx context.Context, arg AddPlateParams) error {
-	_, err := q.db.ExecContext(ctx, addPlate, arg.ClientID, arg.Plate)
+	_, err := q.db.Exec(ctx, addPlate, arg.ClientID, arg.Plate)
 	return err
 }
 
 const getPlateById = `-- name: GetPlateById :one
 SELECT plate
 FROM plates
-WHERE id = ?
+WHERE id = $1
 `
 
-func (q *Queries) GetPlateById(ctx context.Context, id int64) (string, error) {
-	row := q.db.QueryRowContext(ctx, getPlateById, id)
+func (q *Queries) GetPlateById(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRow(ctx, getPlateById, id)
 	var plate string
 	err := row.Scan(&plate)
 	return plate, err
@@ -40,16 +40,16 @@ func (q *Queries) GetPlateById(ctx context.Context, id int64) (string, error) {
 const getPlatesByClientId = `-- name: GetPlatesByClientId :many
 SELECT id, plate 
 FROM plates 
-WHERE client_id = ?
+WHERE client_id = $1
 `
 
 type GetPlatesByClientIdRow struct {
-	ID    int64  `json:"id"`
+	ID    int32  `json:"id"`
 	Plate string `json:"plate"`
 }
 
-func (q *Queries) GetPlatesByClientId(ctx context.Context, clientID int64) ([]GetPlatesByClientIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPlatesByClientId, clientID)
+func (q *Queries) GetPlatesByClientId(ctx context.Context, clientID int32) ([]GetPlatesByClientIdRow, error) {
+	rows, err := q.db.Query(ctx, getPlatesByClientId, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +61,6 @@ func (q *Queries) GetPlatesByClientId(ctx context.Context, clientID int64) ([]Ge
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -11,20 +11,20 @@ import (
 
 const createLoad = `-- name: CreateLoad :exec
 INSERT INTO loads (client_id, plate_id, material_id, quantity, payment_method, signature) 
-VALUES (?, ?, ?, ?, ?, ?)
+VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateLoadParams struct {
-	ClientID      int64  `json:"client_id"`
-	PlateID       int64  `json:"plate_id"`
-	MaterialID    int64  `json:"material_id"`
+	ClientID      int32  `json:"client_id"`
+	PlateID       int32  `json:"plate_id"`
+	MaterialID    int32  `json:"material_id"`
 	Quantity      string `json:"quantity"`
 	PaymentMethod string `json:"payment_method"`
 	Signature     string `json:"signature"`
 }
 
 func (q *Queries) CreateLoad(ctx context.Context, arg CreateLoadParams) error {
-	_, err := q.db.ExecContext(ctx, createLoad,
+	_, err := q.db.Exec(ctx, createLoad,
 		arg.ClientID,
 		arg.PlateID,
 		arg.MaterialID,
@@ -51,7 +51,7 @@ JOIN materials m ON l.material_id = m.id
 `
 
 type GetLoadsRow struct {
-	ID            int64  `json:"id"`
+	ID            int32  `json:"id"`
 	Client        string `json:"client"`
 	Plate         string `json:"plate"`
 	Material      string `json:"material"`
@@ -61,7 +61,7 @@ type GetLoadsRow struct {
 }
 
 func (q *Queries) GetLoads(ctx context.Context) ([]GetLoadsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getLoads)
+	rows, err := q.db.Query(ctx, getLoads)
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +81,6 @@ func (q *Queries) GetLoads(ctx context.Context) ([]GetLoadsRow, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
