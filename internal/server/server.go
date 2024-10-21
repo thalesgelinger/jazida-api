@@ -86,13 +86,6 @@ func (s *Server) setupClientsRoutes() {
 	s.router.HandleFunc("POST /api/materials", midw.WithAdminAuth(ch.CreateMaterial))
 }
 
-func (s *Server) setupViews() {
-
-	fs := http.FileServer(http.Dir("./web/dist"))
-
-	s.router.Handle("/", fs)
-}
-
 func withCors(handleFunc func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
