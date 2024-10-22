@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/rs/cors"
 	"golang.org/x/net/websocket"
 )
 
@@ -53,7 +54,16 @@ func (s *Server) Start() error {
 
 	s.router.Handle("/api/signatures/", http.StripPrefix("/api/signatures/", fs))
 
-	return http.ListenAndServe(s.listenAddr, s.router)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+	})
+
+	handler := c.Handler(s.router)
+
+	return http.ListenAndServe(s.listenAddr, handler)
 }
 
 func (s *Server) setupLoadRoutes() {
@@ -68,7 +78,7 @@ func (s *Server) setupLoadRoutes() {
 			time.Sleep(1 * time.Second)
 		}
 	}))
-	s.router.HandleFunc("GET /api/loads", withCors(midw.WithAdminAuth(lh.GetLoads)))
+	s.router.HandleFunc("GET /api/loads", midw.WithAdminAuth(lh.GetLoads))
 	s.router.HandleFunc("POST /api/load", midw.WithLoaderAuth(lh.SaveLoad))
 	s.router.HandleFunc("POST /api/signature", midw.Cors(midw.WithLoaderAuth(lh.SaveSignature)))
 }
@@ -82,17 +92,4 @@ func (s *Server) setupClientsRoutes() {
 	s.router.HandleFunc("POST /api/clients/{id}/plates", midw.WithAdminAuth(ch.CreatePlate))
 	s.router.HandleFunc("GET /api/materials", midw.WithLoaderAuth(ch.GetMaterials))
 	s.router.HandleFunc("POST /api/materials", midw.WithAdminAuth(ch.CreateMaterial))
-}
-
-func withCors(handleFunc func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-		if r.Method == "OPTIONS" {
-			return
-		}
-		handleFunc(w, r)
-	}
 }
