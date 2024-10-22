@@ -166,7 +166,7 @@ func (l *LoadHandler) SaveSignature(w http.ResponseWriter, r *http.Request) {
 
 	log.Println(w, "File uploaded successfully")
 
-	domain := os.Getenv("DOMAIN")
+	domain := fmt.Sprintf("%s/api", os.Getenv("DOMAIN"))
 
 	url := entity.Signature{
 		Url: fmt.Sprintf("%s/signatures/%s.jpg", domain, fileName),
