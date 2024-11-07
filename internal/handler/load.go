@@ -66,7 +66,7 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := time.Parse("2006-01-02 15:04:05", newLoadParams.CreatedAt)
+	t, err := time.Parse("2006-01-02T15:04:05.999Z", newLoadParams.CreatedAt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
