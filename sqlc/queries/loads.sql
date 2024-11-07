@@ -1,6 +1,6 @@
 -- name: CreateLoad :exec
-INSERT INTO loads (client_id, plate_id, material_id, quantity, payment_method, signature) 
-VALUES ($1, $2, $3, $4, $5, $6);
+INSERT INTO loads (client_id, plate_id, material_id, quantity, payment_method, signature, created_at) 
+VALUES ($1, $2, $3, $4, $5, $6, $7);
 
 -- name: GetLoads :many
 SELECT 
@@ -10,7 +10,8 @@ SELECT
     m.name AS material,
     l.quantity,     
     l.payment_method,
-    l.signature
+    l.signature,
+    l.created_at
 FROM loads l
 JOIN clients c ON l.client_id = c.id
 JOIN plates p ON l.plate_id = p.id

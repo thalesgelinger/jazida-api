@@ -7,20 +7,23 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createLoad = `-- name: CreateLoad :exec
-INSERT INTO loads (client_id, plate_id, material_id, quantity, payment_method, signature) 
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO loads (client_id, plate_id, material_id, quantity, payment_method, signature, created_at) 
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type CreateLoadParams struct {
-	ClientID      int32  `json:"client_id"`
-	PlateID       int32  `json:"plate_id"`
-	MaterialID    int32  `json:"material_id"`
-	Quantity      string `json:"quantity"`
-	PaymentMethod string `json:"payment_method"`
-	Signature     string `json:"signature"`
+	ClientID      int32            `json:"client_id"`
+	PlateID       int32            `json:"plate_id"`
+	MaterialID    int32            `json:"material_id"`
+	Quantity      string           `json:"quantity"`
+	PaymentMethod string           `json:"payment_method"`
+	Signature     string           `json:"signature"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
 }
 
 func (q *Queries) CreateLoad(ctx context.Context, arg CreateLoadParams) error {
@@ -31,6 +34,7 @@ func (q *Queries) CreateLoad(ctx context.Context, arg CreateLoadParams) error {
 		arg.Quantity,
 		arg.PaymentMethod,
 		arg.Signature,
+		arg.CreatedAt,
 	)
 	return err
 }
@@ -43,7 +47,8 @@ SELECT
     m.name AS material,
     l.quantity,     
     l.payment_method,
-    l.signature
+    l.signature,
+    l.created_at
 FROM loads l
 JOIN clients c ON l.client_id = c.id
 JOIN plates p ON l.plate_id = p.id
@@ -51,13 +56,14 @@ JOIN materials m ON l.material_id = m.id
 `
 
 type GetLoadsRow struct {
-	ID            int32  `json:"id"`
-	Client        string `json:"client"`
-	Plate         string `json:"plate"`
-	Material      string `json:"material"`
-	Quantity      string `json:"quantity"`
-	PaymentMethod string `json:"payment_method"`
-	Signature     string `json:"signature"`
+	ID            int32            `json:"id"`
+	Client        string           `json:"client"`
+	Plate         string           `json:"plate"`
+	Material      string           `json:"material"`
+	Quantity      string           `json:"quantity"`
+	PaymentMethod string           `json:"payment_method"`
+	Signature     string           `json:"signature"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
 }
 
 func (q *Queries) GetLoads(ctx context.Context) ([]GetLoadsRow, error) {
@@ -77,6 +83,7 @@ func (q *Queries) GetLoads(ctx context.Context) ([]GetLoadsRow, error) {
 			&i.Quantity,
 			&i.PaymentMethod,
 			&i.Signature,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

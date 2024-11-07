@@ -11,6 +11,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type LoadHandler struct {
@@ -54,22 +57,36 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		Quantity      string `json:"quantity"`
 		PaymentMethod string `json:"paymentMethod"`
 		Signature     string `json:"signature"`
+		CreatedAt     string `json:"createdAt"`
 	}
 
-	var newLoad NewLoadParams
-	if err := json.NewDecoder(r.Body).Decode(&newLoad); err != nil {
+	var newLoadParams NewLoadParams
+	if err := json.NewDecoder(r.Body).Decode(&newLoadParams); err != nil {
 		http.Error(w, "Error decoding request body", http.StatusBadRequest)
 		return
 	}
 
-	err := l.db.CreateLoad(r.Context(), db.CreateLoadParams{
-		ClientID:      newLoad.ClientID,
-		PlateID:       newLoad.PlateID,
-		MaterialID:    newLoad.MaterialID,
-		Quantity:      newLoad.Quantity,
-		PaymentMethod: newLoad.PaymentMethod,
-		Signature:     newLoad.Signature,
-	})
+	t, err := time.Parse("2006-01-02 15:04:05", newLoadParams.CreatedAt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var createdAt pgtype.Timestamp
+	createdAt.Time = t
+	createdAt.Valid = true
+
+	newLoad := db.CreateLoadParams{
+		ClientID:      newLoadParams.ClientID,
+		PlateID:       newLoadParams.PlateID,
+		MaterialID:    newLoadParams.MaterialID,
+		Quantity:      newLoadParams.Quantity,
+		PaymentMethod: newLoadParams.PaymentMethod,
+		Signature:     newLoadParams.Signature,
+		CreatedAt:     createdAt,
+	}
+
+	err = l.db.CreateLoad(r.Context(), newLoad)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -86,17 +103,17 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	client, err := l.db.GetClientById(ctx, newLoad.ClientID)
+	client, err := l.db.GetClientById(ctx, newLoadParams.ClientID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	plate, err := l.db.GetPlateById(ctx, newLoad.PlateID)
+	plate, err := l.db.GetPlateById(ctx, newLoadParams.PlateID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	material, err := l.db.GetMaterialById(ctx, newLoad.MaterialID)
+	material, err := l.db.GetMaterialById(ctx, newLoadParams.MaterialID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -106,9 +123,9 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		Client:        client,
 		Plate:         plate,
 		Material:      material,
-		Quantity:      newLoad.Quantity,
-		PaymentMethod: newLoad.PaymentMethod,
-		Signature:     newLoad.Signature,
+		Quantity:      newLoadParams.Quantity,
+		PaymentMethod: newLoadParams.PaymentMethod,
+		Signature:     newLoadParams.Signature,
 	})
 
 	if err != nil {

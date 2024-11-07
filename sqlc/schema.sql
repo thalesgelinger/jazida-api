@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS loads (
     quantity     VARCHAR(50) NOT NULL,
     payment_method VARCHAR(50) NOT NULL,
     signature    VARCHAR(100) NOT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (plate_id) REFERENCES plates(id) ON DELETE CASCADE,
     FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE,
