@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -100,6 +101,7 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		Quantity      string `json:"quantity"`
 		PaymentMethod string `json:"paymentMethod"`
 		Signature     string `json:"signature"`
+		CreatedAt     string `json:"created_at"`
 	}
 
 	ctx := r.Context()
@@ -126,6 +128,7 @@ func (l *LoadHandler) SaveLoad(w http.ResponseWriter, r *http.Request) {
 		Quantity:      newLoadParams.Quantity,
 		PaymentMethod: newLoadParams.PaymentMethod,
 		Signature:     newLoadParams.Signature,
+		CreatedAt:     strings.Replace(newLoadParams.CreatedAt, "-03:00", "Z", 1),
 	})
 
 	if err != nil {
